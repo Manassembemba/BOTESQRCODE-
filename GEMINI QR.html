@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOTES | QR Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&display=swap');
+        
+        :root {
+            --botes-yellow: #fde047; /* Jaune vif comme sur le badge */
+            --botes-black: #1a1a1a;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .font-botes { font-family: 'Montserrat', sans-serif; }
+        .bg-botes-yellow { background-color: var(--botes-yellow); }
+        .text-botes-yellow { color: var(--botes-yellow); }
+        .bg-botes-black { background-color: var(--botes-black); }
+        
+        .badge-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-botes-black text-white py-12 border-b-8 border-yellow-400 shadow-lg">
+        <div class="container mx-auto text-center px-4">
+            <h1 class="text-5xl font-botes font-black tracking-tighter italic">
+                BOTES<span class="text-botes-yellow">GROUP</span>
+            </h1>
+            <p class="text-gray-400 uppercase text-xs tracking-[0.4em] mt-2 font-bold">ID Card Digital System</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 -mt-8 flex-grow mb-16">
+        <div class="max-w-5xl mx-auto bg-white rounded-2xl badge-shadow overflow-hidden flex flex-col md:flex-row">
+            
+            <div class="md:w-3/5 p-10">
+                <h2 class="text-2xl font-botes font-black text-gray-800 mb-8 uppercase flex items-center">
+                    <span class="w-2 h-8 bg-botes-yellow mr-3"></span>
+                    Créer un QR Code Contact
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Prénom</label>
+                        <input type="text" id="firstname" placeholder="Adrien" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:border-yellow-400 outline-none transition-all">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nom</label>
+                        <input type="text" id="lastname" placeholder="Ex: Nom" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:border-yellow-400 outline-none transition-all">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Fonction / Poste</label>
+                        <input type="text" id="job" placeholder="Ex: Directeur Technique" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:border-yellow-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email</label>
+                        <input type="email" id="email" placeholder="adrien@botes.com" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:border-yellow-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Téléphone</label>
+                        <input type="tel" id="phone" placeholder="+33..." class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:border-yellow-400 outline-none transition-all">
+                    </div>
+                </div>
+
+                <button onclick="generateVCardQR()" class="mt-10 w-full bg-botes-yellow text-black font-black py-5 rounded-xl hover:bg-black hover:text-white transition-all shadow-lg uppercase tracking-wider">
+                    Générer pour le Badge
+                </button>
+            </div>
+
+            <div class="md:w-2/5 bg-gray-900 p-10 flex flex-col items-center justify-center text-white relative">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-botes-yellow opacity-10 rounded-bl-full"></div>
+                
+                <div id="qrcode-container" class="bg-white p-6 rounded-xl shadow-2xl">
+                    <div id="qrcode">
+                        <div class="w-40 h-40 flex items-center justify-center text-gray-400 italic text-center text-sm">
+                            Saisissez les infos pour voir le QR
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="result-actions" class="mt-8 hidden w-full">
+                    <button onclick="downloadQR()" class="w-full flex items-center justify-center border-2 border-botes-yellow text-botes-yellow px-6 py-3 rounded-xl font-bold hover:bg-botes-yellow hover:text-black transition-all">
+                        TÉLÉCHARGER LE PNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white py-10 border-t border-gray-200">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-900 font-black text-sm tracking-widest uppercase mb-2">
+                &copy; <span id="year"></span> BOTES GROUP
+            </p>
+            <p class="text-gray-400 text-[11px] font-medium uppercase tracking-tighter">
+                Système d'identification sécurisé • Aucun stockage de données
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        function generateVCardQR() {
+            const fn = document.getElementById('firstname').value;
+            const ln = document.getElementById('lastname').value;
+            const job = document.getElementById('job').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+
+            if(!fn || !ln) {
+                alert("Veuillez entrer au moins le nom et le prénom.");
+                return;
+            }
+
+            // vCard Format
+            const vCard = `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn};;;\nFN:${fn} ${ln}\nORG:BOTES\nTITLE:${job}\nEMAIL;TYPE=INTERNET,WORK:${email}\nTEL;TYPE=CELL:${phone}\nEND:VCARD`;
+
+            const container = document.getElementById('qrcode');
+            container.innerHTML = "";
+            
+            new QRCode(container, {
+                text: vCard,
+                width: 200,
+                height: 200,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('result-actions').classList.remove('hidden');
+        }
+
+        function downloadQR() {
+            const img = document.querySelector("#qrcode img");
+            if(img) {
+                const link = document.createElement("a");
+                link.href = img.src;
+                link.download = `QR_BOTES_${document.getElementById('lastname').value}.png`;
+                link.click();
+            }
+        }
+    </script>
+</body>
+</html>
